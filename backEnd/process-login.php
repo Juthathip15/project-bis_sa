@@ -1,6 +1,8 @@
 <?php
+
 $open_connect = 1;
 require('connect.php');
+
     if(isset($_POST['email_account']) && isset($_POST['password_account'])){
         $email_account = htmlspecialchars( mysqli_real_escape_string($connect, $_POST['email_account']));
         $password_account = htmlspecialchars( mysqli_real_escape_string($connect, $_POST['password_account']));
