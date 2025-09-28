@@ -15,8 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_email = trim($_POST['user_email']);
 
     // ตรวจสอบว่าอีเมลไม่ซ้ำในระบบ
-    $sql = "SELECT * FROM new WHERE user_email = ?";
-    $stmt = $conn->prepare($sql); // ตรวจสอบว่า $conn เป็นการเชื่อมต่อที่ถูกต้องหรือไม่
+    $sql = "SELECT * FROM ademp WHERE user_email = ?";
+    $stmt = $connect->prepare($sql); // ตรวจสอบว่า $conn เป็นการเชื่อมต่อที่ถูกต้องหรือไม่
     $stmt->bind_param("s", $user_email); // เปลี่ยนจาก $email เป็น $user_email
     $stmt->execute();
     $result = $stmt->get_result();
@@ -25,10 +25,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "อีเมลนี้มีอยู่ในระบบแล้ว";
     } else {
         // ถ้าไม่มีข้อมูลซ้ำก็ทำการบันทึก
-        $sql_insert = "INSERT INTO new (user_id, user_Fname, user_Lname, user_age, user_born, user_department, user_position, user_tel, user_email) 
+        $sql_insert = "INSERT INTO ademp (user_id, user_Fname, user_Lname, user_age, user_born, user_department, user_position, user_tel, user_email) 
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt_insert = $conn->prepare($sql_insert);
-        $stmt_insert->bind_param("ississsss", $user_id, $user_Fname, $user_Lname, $user_age, $user_born, $user_department, $user_position, $user_tel, $user_email);
+        $stmt_insert = $connect->prepare($sql_insert);
+        $stmt_insert->bind_param("sssisssss", $user_id, $user_Fname, $user_Lname, $user_age, $user_born, $user_department, $user_position, $user_tel, $user_email);
 
         if ($stmt_insert->execute()) {
             $_SESSION['success'] = "ข้อมูลพนักงานถูกบันทึกเรียบร้อยแล้ว";
@@ -59,6 +59,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <li class="nav-item"><a class="nav-link" href="requests.php">Requests</a></li>
         <li class="nav-item"><a class="nav-link" href="approvals.php">Approvals</a></li>
         <li class="nav-item"><a class="nav-link" href="reports.php">Reports</a></li>
+            <!-- แสดงชื่อผู้ใช้ -->
+    <span class="navbar-text text-white me-3">
+      👤 <?php echo htmlspecialchars($_SESSION['name']); ?>
+    </span>
+
+         <!-- ปุ่ม Logout -->
+  <li class="nav-item ms-auto">
+    <a class="btn btn-danger btn-sm" href="logout.php"
+       onclick="return confirm('คุณต้องการออกจากระบบหรือไม่?');">Logout</a>
+  </li>
       </ul>
     </div>
   </nav>
@@ -110,6 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               <option value="HR">ทรัพยากรบุคคล (HR)</option>
               <option value="Finance">การเงินและบัญชี (Finance)</option>
               <option value="Safety">ความปลอดภัย (Safety)</option>
+              <option value="IT">ไอที (IT)</option>
             </select>
           </div>
         </div>

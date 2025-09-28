@@ -54,6 +54,16 @@ $list_rs = mysqli_query($connect, $sql);
             <li class="nav-item"><a class="nav-link" href="requests.php">Requests</a></li>
             <li class="nav-item"><a class="nav-link active" href="approvals.php">Approvals</a></li>
             <li class="nav-item"><a class="nav-link" href="reports.php">Reports</a></li>
+                <!-- แสดงชื่อผู้ใช้ -->
+    <span class="navbar-text text-white me-3">
+      👤 <?php echo htmlspecialchars($_SESSION['name']); ?>
+    </span>
+
+             <!-- ปุ่ม Logout -->
+  <li class="nav-item ms-auto">
+    <a class="btn btn-danger btn-sm" href="logout.php"
+       onclick="return confirm('คุณต้องการออกจากระบบหรือไม่?');">Logout</a>
+  </li>
         </ul>
     </div>
 </nav>

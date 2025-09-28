@@ -2,12 +2,6 @@
 session_start();
 include 'connect.php'; // ไฟล์เชื่อมต่อ DB
 
-// ถ้าเป็น user ให้ redirect ไป requests.php เลย
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'user') {
-    header("Location: requests.php");
-    exit;
-}
-
 // --- สรุปตัวเลข ---
 $totalEmp = 0;
 $openReq  = 0;
@@ -66,27 +60,11 @@ if ($rs) {
   <div class="container-fluid">
     <a class="navbar-brand" href="index.php">Manpower</a>
     <ul class="navbar-nav">
-
-      <?php if ($_SESSION['role'] === 'admin'): ?>
-        <li class="nav-item"><a class="nav-link active" href="index.php">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="employees.php">Employees</a></li>
-        <li class="nav-item"><a class="nav-link" href="requests.php">Requests</a></li>
-        <li class="nav-item"><a class="nav-link" href="approvals.php">Approvals</a></li>
-        <li class="nav-item"><a class="nav-link" href="reports.php">Reports</a></li>
-      <?php else: ?>
-        <!-- ถ้าเป็น user -->
-        <li class="nav-item"><a class="nav-link active" href="requests.php">Requests</a></li>
-      <?php endif; ?>
-          <!-- แสดงชื่อผู้ใช้ -->
-    <span class="navbar-text text-white me-3">
-      👤 <?php echo htmlspecialchars($_SESSION['name']); ?>
-    </span>
-
-       <!-- ปุ่ม Logout -->
-  <li class="nav-item ms-auto">
-    <a class="btn btn-danger btn-sm" href="logout.php"
-       onclick="return confirm('คุณต้องการออกจากระบบหรือไม่?');">Logout</a>
-  </li>
+     <!-- <li class="nav-item"><a class="nav-link active" href="index.php">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="employees.php">Employees</a></li> -->
+      <li class="nav-item"><a class="nav-link" href="requests.php">Requests</a></li>
+      <!-- <li class="nav-item"><a class="nav-link" href="approvals.php">Approvals</a></li>
+      <li class="nav-item"><a class="nav-link" href="reports.php">Reports</a></li> -->
     </ul>
   </div>
 </nav>

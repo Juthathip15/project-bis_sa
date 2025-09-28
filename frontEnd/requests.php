@@ -1,17 +1,17 @@
 <?php
 session_start();
 
-// ----- เชื่อมต่อ DB (ปรับ path ให้ตรงโปรเจ็กต์) -----
-
-// ถ้า connect.php อยู่โฟลเดอร์เดียวกัน ให้ใช้: include __DIR__ . '/connect.php';
 include 'connect.php';
 
-// ----- helper: Fallback random_int สำหรับ PHP < 7 -----
+if (!isset($_SESSION['role'])) {
+  header('Location: login.php');
+  exit;
+}
+
 if (!function_exists('random_int')) {
     function random_int($min, $max) { return mt_rand($min, $max); }
 }
 
-// ----- helper: สร้างรหัสคำขอ (ไม่พึ่ง mysqlnd) -----
 function make_request_id($db) {
     $base = 'REQ-' . date('Ymd') . '-';
     do {
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $reason       = isset($_POST['reason'])       ? trim($_POST['reason'])       : '';
 
     // whitelist ตัวเลือก
-    $allowDept  = array('Production','QC','Maintenance','Warehouse','Sales','HR','Finance','Safety');
+    $allowDept  = array('Production','QC','Maintenance','Warehouse','Sales','HR','Finance','Safety','IT');
     $allowType  = array('monthly','daily','office','intern');
     $allowReqBy = array('HR','Manager');
 
@@ -113,11 +113,26 @@ $list_rs  = mysqli_query($connect, $list_sql);
   <div class="container-fluid">
     <a class="navbar-brand" href="index.php">Manpower</a>
     <ul class="navbar-nav">
-      <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link" href="employees.php">Employees</a></li>
-      <li class="nav-item"><a class="nav-link active" href="requests.php">Requests</a></li>
-      <li class="nav-item"><a class="nav-link" href="approvals.php">Approvals</a></li>
-      <li class="nav-item"><a class="nav-link" href="reports.php">Reports</a></li>
+
+      <?php if ($_SESSION['role'] === 'admin'): ?>
+        <li class="nav-item"><a class="nav-link active" href="index.php">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="employees.php">Employees</a></li>
+        <li class="nav-item"><a class="nav-link" href="requests.php">Requests</a></li>
+        <li class="nav-item"><a class="nav-link" href="approvals.php">Approvals</a></li>
+        <li class="nav-item"><a class="nav-link" href="reports.php">Reports</a></li>
+      <?php else: ?>
+        <!-- ถ้าเป็น user -->
+        <li class="nav-item"><a class="nav-link active" href="requests.php">Requests</a></li>
+      <?php endif; ?>
+          <!-- แสดงชื่อผู้ใช้ -->
+    <span class="navbar-text text-white me-3">
+      👤 <?php echo htmlspecialchars($_SESSION['name']); ?>
+    </span>
+       <!-- ปุ่ม Logout -->
+  <li class="nav-item ms-auto">
+    <a class="btn btn-danger btn-sm" href="logout.php"
+       onclick="return confirm('คุณต้องการออกจากระบบหรือไม่?');">Logout</a>
+  </li>
     </ul>
   </div>
 </nav>
@@ -148,6 +163,7 @@ $list_rs  = mysqli_query($connect, $list_sql);
           <option value="HR">HR</option>
           <option value="Finance">Finance</option>
           <option value="Safety">Safety</option>
+          <option value="IT">IT</option>
         </select>
       </div>
 
@@ -193,43 +209,58 @@ $list_rs  = mysqli_query($connect, $list_sql);
     </div>
   </form>
 
-  <hr>
-  <h5>All Requests</h5>
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered align-middle">
-      <thead class="table-primary">
-        <tr>
-          <th>Request ID</th>
-          <th>Dept</th>
-          <th>Position</th>
-          <th>Qty</th>
-          <th>Type</th>
-          <th>Status</th>
-          <th>Requested By</th>
-          <th>Created At</th>
-        </tr>
-      </thead>
-      <tbody>
-      <?php if ($list_rs && mysqli_num_rows($list_rs) > 0) { ?>
-        <?php while($r = mysqli_fetch_assoc($list_rs)) { ?>
+  <?php if ($_SESSION['role'] === 'admin'): ?>
+    <hr>
+    <h5>All Requests</h5>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered align-middle">
+        <thead class="table-primary">
           <tr>
-            <td><?php echo htmlspecialchars($r['request_id']); ?></td>
-            <td><?php echo htmlspecialchars($r['department']); ?></td>
-            <td><?php echo htmlspecialchars($r['position']); ?></td>
-            <td><?php echo htmlspecialchars($r['quantity']); ?></td>
-            <td><?php echo htmlspecialchars($r['request_type']); ?></td>
-            <td><span class="badge bg-secondary"><?php echo htmlspecialchars($r['status']); ?></span></td>
-            <td><?php echo htmlspecialchars($r['requested_by']); ?></td>
-            <td><?php echo htmlspecialchars($r['created_at']); ?></td>
+            <th>Request ID</th>
+            <th>Dept</th>
+            <th>Position</th>
+            <th>Qty</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Requested By</th>
+            <th>Created At</th>
           </tr>
+        </thead>
+        <tbody>
+        <?php if ($list_rs && mysqli_num_rows($list_rs) > 0) { ?>
+          <?php while($r = mysqli_fetch_assoc($list_rs)) { ?>
+            <tr>
+              <td><?php echo htmlspecialchars($r['request_id']); ?></td>
+              <td><?php echo htmlspecialchars($r['department']); ?></td>
+              <td><?php echo htmlspecialchars($r['position']); ?></td>
+              <td><?php echo htmlspecialchars($r['quantity']); ?></td>
+              <td><?php echo htmlspecialchars($r['request_type']); ?></td>
+              <td>
+                <?php
+                  $statusClass = 'bg-secondary';
+                  switch ($r['status']) {
+                      case 'pending':    $statusClass = 'bg-warning text-dark'; break;
+                      case 'approved':   $statusClass = 'bg-success'; break;
+                      case 'rejected':   $statusClass = 'bg-danger'; break;
+                      case 'processing': $statusClass = 'bg-info text-dark'; break;
+                  }
+                ?>
+                <span class="badge <?php echo $statusClass; ?>">
+                  <?php echo htmlspecialchars($r['status']); ?>
+                </span>
+              </td>
+              <td><?php echo htmlspecialchars($r['requested_by']); ?></td>
+              <td><?php echo htmlspecialchars($r['created_at']); ?></td>
+            </tr>
+          <?php } ?>
+        <?php } else { ?>
+            <tr><td colspan="9" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>
         <?php } ?>
-      <?php } else { ?>
-          <tr><td colspan="9" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>
-      <?php } ?>
-      </tbody>
-    </table>
-  </div>
-
+        </tbody>
+      </table>
+    </div>
+  <?php endif; ?>
+        
 </div>
 </body>
 </html>
